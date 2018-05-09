@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Unsplash Test</string>
+
+    <string name="client_id">01b8fea56f11b0120c947b8df8a1816a327f3b63329935ddd50d68bc17d5147b</string>
+    <string name="client_secret">574e1843dfcaafe98b992ef2c87756a7ecbc1ce319aeee28198a8a31ca3f9dc2</string>
+    <string name="redirect_uri">urn:ietf:wg:oauth:2.0:oob</string>
+    <string name="authentication_url">https://unsplash.com/oauth/authorize</string>
+    <string name="response_type">code</string>
+    <string name="scope">public+read_photos</string>
+    <string name="auth_grant_type">authorization_code</string>
+    <string name="search">Search</string>
+    <string name="download">Download</string>
+</resources>
