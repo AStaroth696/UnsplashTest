@@ -23,13 +23,10 @@ import javax.inject.Inject;
 public class DetailActivity extends AppCompatActivity {
     public static final String PHOTO_ID = "photo id";
     public static final String PHOTO_URL = "photo url";
-    public static final String PHOTO_DOWNLOAD_URL = "photo download url";
     @Inject
     DetailPresenter presenter;
     private String photoId;
     private String photoUrl;
-    private String photoDownloadUrl;
-    private WebView webView;
     private ProgressBar progressBar;
 
     @Override
@@ -41,10 +38,8 @@ public class DetailActivity extends AppCompatActivity {
         if (getIntent().getExtras() != null) {
             photoId = getIntent().getStringExtra(PHOTO_ID);
             photoUrl = getIntent().getStringExtra(PHOTO_URL);
-            photoDownloadUrl = getIntent().getStringExtra(PHOTO_DOWNLOAD_URL);
         }
         progressBar = findViewById(R.id.download_progress_bar);
-        webView = findViewById(R.id.download_web_view);
         PhotoView largePhoto = findViewById(R.id.large_photo);
         presenter.loadPhotoIntoContainer(largePhoto, photoUrl);
     }
@@ -59,7 +54,7 @@ public class DetailActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()){
             case R.id.action_download:
-                presenter.downloadPhoto(photoUrl, photoId, webView);
+                presenter.downloadPhoto(photoUrl, photoId);
                 break;
         }
         return super.onOptionsItemSelected(item);

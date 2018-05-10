@@ -16,6 +16,7 @@ import com.example.android.unsplashtest.networking.AuthService;
 import com.example.android.unsplashtest.networking.DaggerNetworkComponent;
 import com.example.android.unsplashtest.networking.NetworkComponent;
 import com.example.android.unsplashtest.networking.NetworkModule;
+import com.example.android.unsplashtest.networking.NetworkStateInfo;
 import com.example.android.unsplashtest.networking.RetrofitService;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -66,57 +67,61 @@ public class MainPresenter {
     }
 
     public void processWebView(final WebView webView) {
-        webView.setVisibility(View.VISIBLE);
-        String url = context.getResources().getString(R.string.authentication_url) + "?"
-                + "client_id=" + context.getResources().getString(R.string.client_id) + "&"
-                + "redirect_uri=" + context.getResources().getString(R.string.redirect_uri) + "&"
-                + "response_type=" + context.getResources().getString(R.string.response_type) + "&"
-                + "scope=" + context.getResources().getString(R.string.scope);
-        webView.loadUrl(url);
-        webView.setWebViewClient(new WebViewClient() {
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                if (url.contains("oauth/authorize") && !url.contains("&")) {
-                    int index = url.lastIndexOf("/") + 1;
-                    String code = url.substring(index);
-                    Log.d("AUTHORIZE", "code: " + code);
-                    webView.setVisibility(View.INVISIBLE);
-                    authorize(code);
+        if (NetworkStateInfo.isNetworAvailable(context)) {
+            webView.setVisibility(View.VISIBLE);
+            String url = context.getResources().getString(R.string.authentication_url) + "?"
+                    + "client_id=" + context.getResources().getString(R.string.client_id) + "&"
+                    + "redirect_uri=" + context.getResources().getString(R.string.redirect_uri) + "&"
+                    + "response_type=" + context.getResources().getString(R.string.response_type) + "&"
+                    + "scope=" + context.getResources().getString(R.string.scope);
+            webView.loadUrl(url);
+            webView.setWebViewClient(new WebViewClient() {
+                @Override
+                public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                    if (url.contains("oauth/authorize") && !url.contains("&")) {
+                        int index = url.lastIndexOf("/") + 1;
+                        String code = url.substring(index);
+                        Log.d("AUTHORIZE", "code: " + code);
+                        webView.setVisibility(View.INVISIBLE);
+                        authorize(code);
+                    }
+                    webView.loadUrl(url);
+                    return false;
                 }
-                webView.loadUrl(url);
-                return false;
-            }
-        });
+            });
+        }
     }
 
     private void authorize(final String code) {
-        new AsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(Void... voids) {
-                Call<JsonElement> call = authService.authenticate(
-                        context.getResources().getString(R.string.client_id),
-                        context.getResources().getString(R.string.client_secret),
-                        context.getResources().getString(R.string.redirect_uri),
-                        code,
-                        context.getResources().getString(R.string.auth_grant_type)
-                );
+        if (NetworkStateInfo.isNetworAvailable(context)) {
+            new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground(Void... voids) {
+                    Call<JsonElement> call = authService.authenticate(
+                            context.getResources().getString(R.string.client_id),
+                            context.getResources().getString(R.string.client_secret),
+                            context.getResources().getString(R.string.redirect_uri),
+                            code,
+                            context.getResources().getString(R.string.auth_grant_type)
+                    );
 
-                try {
-                    Response<JsonElement> response = call.execute();
-                    token = response.body().getAsJsonObject().get("access_token").getAsString();
-                    Log.d("AUTHORIZE", "token: " + token);
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    try {
+                        Response<JsonElement> response = call.execute();
+                        token = response.body().getAsJsonObject().get("access_token").getAsString();
+                        Log.d("AUTHORIZE", "token: " + token);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    return null;
                 }
-                return null;
-            }
 
-            @Override
-            protected void onPostExecute(Void aVoid) {
-                super.onPostExecute(aVoid);
-                loadPhotos();
-            }
-        }.execute();
+                @Override
+                protected void onPostExecute(Void aVoid) {
+                    super.onPostExecute(aVoid);
+                    loadPhotos();
+                }
+            }.execute();
+        }
     }
 
     public void receivePhotos() {
@@ -129,76 +134,82 @@ public class MainPresenter {
     }
 
     public void loadPhotos() {
-        context.setProgressBarVisible();
-        new AsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(Void... voids) {
-                Call<JsonElement> call = service.getPhotosList("Bearer " + token,
-                        (photos.size() / 20) + 1, 20);
-                Log.d("PHOTOS", "get photos request: " + call.request().toString() + " : " + call.request().headers().toString());
-                try {
-                    Response<JsonElement> response = call.execute();
-                    JsonArray jsonArray = response.body().getAsJsonArray();
-                    for (JsonElement jsonElement : jsonArray) {
-                        getPhotoFromJson(jsonElement);
+        if (NetworkStateInfo.isNetworAvailable(context)) {
+            context.setProgressBarVisible();
+            new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground(Void... voids) {
+                    Call<JsonElement> call = service.getPhotosList("Bearer " + token,
+                            (photos.size() / 20) + 1, 20);
+                    Log.d("PHOTOS", "get photos request: " + call.request().toString() + " : " + call.request().headers().toString());
+                    try {
+                        Response<JsonElement> response = call.execute();
+                        JsonArray jsonArray = response.body().getAsJsonArray();
+                        for (JsonElement jsonElement : jsonArray) {
+                            getPhotoFromJson(jsonElement);
+                        }
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    return null;
                 }
-                return null;
-            }
 
-            @Override
-            protected void onPostExecute(Void aVoid) {
-                super.onPostExecute(aVoid);
-                context.notifyAdapter();
-                context.setProgressBarInvisible();
-            }
-        }.execute();
+                @Override
+                protected void onPostExecute(Void aVoid) {
+                    super.onPostExecute(aVoid);
+                    context.notifyAdapter();
+                    context.setProgressBarInvisible();
+                }
+            }.execute();
+        }
     }
 
     public void searchPhotos() {
-        context.setProgressBarVisible();
-        new AsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(Void... voids) {
-                Call<JsonElement> call = service.searchPhotos("Bearer " + token,
-                        (photos.size() / 20) + 1, 20, query);
-                Log.d("PHOTOS", "search photos request: " + call.request().toString() + " : " + call.request().headers().toString());
-                try {
-                    Response<JsonElement> response = call.execute();
-                    JsonArray jsonArray = response.body().getAsJsonObject().get("results").getAsJsonArray();
-                    for (JsonElement jsonElement : jsonArray) {
-                        getPhotoFromJson(jsonElement);
+        if (NetworkStateInfo.isNetworAvailable(context)) {
+            context.setProgressBarVisible();
+            new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground(Void... voids) {
+                    Call<JsonElement> call = service.searchPhotos("Bearer " + token,
+                            (photos.size() / 20) + 1, 20, query);
+                    Log.d("PHOTOS", "search photos request: " + call.request().toString() + " : " + call.request().headers().toString());
+                    try {
+                        Response<JsonElement> response = call.execute();
+                        JsonArray jsonArray = response.body().getAsJsonObject().get("results").getAsJsonArray();
+                        for (JsonElement jsonElement : jsonArray) {
+                            getPhotoFromJson(jsonElement);
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    return null;
                 }
-                return null;
-            }
 
-            @Override
-            protected void onPostExecute(Void aVoid) {
-                super.onPostExecute(aVoid);
-                context.notifyAdapter();
-                context.setProgressBarInvisible();
-            }
-        }.execute();
+                @Override
+                protected void onPostExecute(Void aVoid) {
+                    super.onPostExecute(aVoid);
+                    context.notifyAdapter();
+                    context.setProgressBarInvisible();
+                }
+            }.execute();
+        }
     }
 
     public void bindView(final ImageView photo, final int position) {
-        Picasso.with(context).load(photos.get(position).getThumbNailUrl()).into(photo, new Callback() {
-            @Override
-            public void onSuccess() {
-                calbacks.add(photos.get(position).getId());
-            }
+        if (NetworkStateInfo.isNetworAvailable(context)) {
+            Picasso.with(context).load(photos.get(position).getThumbNailUrl()).into(photo, new Callback() {
+                @Override
+                public void onSuccess() {
+                    calbacks.add(photos.get(position).getId());
+                }
 
-            @Override
-            public void onError() {
+                @Override
+                public void onError() {
 
-            }
-        });
+                }
+            });
+        }
     }
 
     public void itemClicked(Photo photo) {
@@ -215,12 +226,10 @@ public class MainPresenter {
     private void getPhotoFromJson(JsonElement jsonElement) {
         JsonObject jsonObject = jsonElement.getAsJsonObject();
         String id = jsonObject.get("id").getAsString();
-        JsonObject downloadJsonObject = jsonObject.get("links").getAsJsonObject();
-        String downloadUrl = downloadJsonObject.get("download").getAsString();
         jsonObject = jsonObject.get("urls").getAsJsonObject();
         String thumbnailUrl = jsonObject.get("thumb").getAsString();
         String regularUrl = jsonObject.get("regular").getAsString();
-        photos.add(new Photo(thumbnailUrl, regularUrl, id, downloadUrl));
+        photos.add(new Photo(thumbnailUrl, regularUrl, id));
     }
 
     public void clearPhotoList() {

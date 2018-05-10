@@ -4,13 +4,11 @@ public class Photo {
     private String thumbNailUrl;
     private String regularUrl;
     private String id;
-    private String downloadUrl;
 
-    public Photo(String thumbNailUrl, String regularUrl, String id, String downloadUrl) {
+    public Photo(String thumbNailUrl, String regularUrl, String id) {
         this.thumbNailUrl = thumbNailUrl;
         this.regularUrl = regularUrl;
         this.id = id;
-        this.downloadUrl = downloadUrl;
     }
 
     public String getThumbNailUrl() {
@@ -23,9 +21,5 @@ public class Photo {
 
     public String getId() {
         return id;
-    }
-
-    public String getDownloadUrl() {
-        return downloadUrl;
     }
 }
