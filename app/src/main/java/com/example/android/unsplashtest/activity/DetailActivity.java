@@ -59,7 +59,7 @@ public class DetailActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()){
             case R.id.action_download:
-                presenter.downloadPhoto(photoDownloadUrl, photoId, webView);
+                presenter.downloadPhoto(photoUrl, photoId, webView);
                 break;
         }
         return super.onOptionsItemSelected(item);

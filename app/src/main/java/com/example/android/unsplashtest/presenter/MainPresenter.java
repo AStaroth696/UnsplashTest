@@ -20,11 +20,14 @@ import com.example.android.unsplashtest.networking.RetrofitService;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -39,8 +42,8 @@ public class MainPresenter {
     private RetrofitService service;
     private MainActivity context;
     private List<Photo> photos;
+    private Set<String> calbacks;
     private String token;
-    private boolean loading;
     private String query;
     private boolean searching;
 
@@ -59,6 +62,7 @@ public class MainPresenter {
         service = retrofit.create(RetrofitService.class);
 
         photos = new ArrayList<>();
+        calbacks = new HashSet<>();
     }
 
     public void processWebView(final WebView webView) {
@@ -125,13 +129,12 @@ public class MainPresenter {
     }
 
     public void loadPhotos() {
-        loading = true;
         context.setProgressBarVisible();
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... voids) {
                 Call<JsonElement> call = service.getPhotosList("Bearer " + token,
-                        (photos.size() / 10) + 1);
+                        (photos.size() / 20) + 1, 20);
                 Log.d("PHOTOS", "get photos request: " + call.request().toString() + " : " + call.request().headers().toString());
                 try {
                     Response<JsonElement> response = call.execute();
@@ -149,7 +152,6 @@ public class MainPresenter {
             @Override
             protected void onPostExecute(Void aVoid) {
                 super.onPostExecute(aVoid);
-                loading = false;
                 context.notifyAdapter();
                 context.setProgressBarInvisible();
             }
@@ -157,13 +159,12 @@ public class MainPresenter {
     }
 
     public void searchPhotos() {
-        loading = true;
         context.setProgressBarVisible();
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... voids) {
                 Call<JsonElement> call = service.searchPhotos("Bearer " + token,
-                        (photos.size() / 10) + 1, query);
+                        (photos.size() / 20) + 1, 20, query);
                 Log.d("PHOTOS", "search photos request: " + call.request().toString() + " : " + call.request().headers().toString());
                 try {
                     Response<JsonElement> response = call.execute();
@@ -180,15 +181,24 @@ public class MainPresenter {
             @Override
             protected void onPostExecute(Void aVoid) {
                 super.onPostExecute(aVoid);
-                loading = false;
                 context.notifyAdapter();
                 context.setProgressBarInvisible();
             }
         }.execute();
     }
 
-    public void bindView(ImageView photo, int position) {
-        Picasso.with(context).load(photos.get(position).getThumbNailUrl()).into(photo);
+    public void bindView(final ImageView photo, final int position) {
+        Picasso.with(context).load(photos.get(position).getThumbNailUrl()).into(photo, new Callback() {
+            @Override
+            public void onSuccess() {
+                calbacks.add(photos.get(position).getId());
+            }
+
+            @Override
+            public void onError() {
+
+            }
+        });
     }
 
     public void itemClicked(Photo photo) {
@@ -215,10 +225,11 @@ public class MainPresenter {
 
     public void clearPhotoList() {
         photos.clear();
+        calbacks.clear();
     }
 
-    public boolean isLoading() {
-        return loading;
+    public boolean isLoaded() {
+        return !(photos.size() > calbacks.size());
     }
 
     public void setSearching(boolean searching) {

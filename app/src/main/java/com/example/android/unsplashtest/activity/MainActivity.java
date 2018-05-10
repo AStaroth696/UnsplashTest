@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
-                if (!presenter.isLoading()
+                if (presenter.isLoaded()
                         && layoutManager.getItemCount() >= 10
                         && layoutManager.findLastVisibleItemPosition() == layoutManager.getItemCount() - 1) {
                     presenter.receivePhotos();

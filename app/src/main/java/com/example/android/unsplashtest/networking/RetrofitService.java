@@ -9,9 +9,10 @@ import retrofit2.http.Query;
 
 public interface RetrofitService {
     @GET("photos")
-    Call<JsonElement> getPhotosList(@Header("Authorization") String header, @Query("page") int page);
+    Call<JsonElement> getPhotosList(@Header("Authorization") String header, @Query("page") int page,
+                                    @Query("per_page")int perPage);
 
     @GET("search/photos")
     Call<JsonElement> searchPhotos(@Header("Authorization") String header, @Query("page") int page,
-                                   @Query("query") String query);
+                                   @Query("per_page")int perPage, @Query("query") String query);
 }

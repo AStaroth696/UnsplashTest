@@ -44,45 +44,78 @@ public class DetailPresenter{
     public void downloadPhoto(String url, final String id, WebView webView){
         context.setProgressBarVisible();
         context.showToast("Downloading...");
-        webView.loadUrl(url);
-        webView.setWebViewClient(new WebViewClient(){
+        Picasso.with(context).load(url).into(new Target() {
             @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                Log.d("DOWNLOADING", "url");
-                if (url.contains("images.unsplash.com")){
-                    Picasso.with(context).load(url).into(new Target() {
-                        @Override
-                        public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-                            Log.d("DOWNLOADING", "downloading file");
-                            File file = new File(Environment.getExternalStorageDirectory().getPath()
-                                    + "/" + id);
-                            try {
-                                file.createNewFile();
-                                FileOutputStream fos = new FileOutputStream(file);
-                                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
-                                fos.close();
-                                context.setProgressBarInvisible();
-                                context.showToast("Photo downloaded");
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
-
-                        @Override
-                        public void onBitmapFailed(Drawable errorDrawable) {
-                            Log.d("DOWNLOADING", "downloading failed");
-                        }
-
-                        @Override
-                        public void onPrepareLoad(Drawable placeHolderDrawable) {
-
-                        }
-                    });
-
+            public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+                Log.d("DOWNLOADING", "downloading file");
+                File file = new File(Environment.getExternalStorageDirectory().getPath()
+                        + "/" + id + ".jpeg");
+                Log.d("DOWNLOADING", Environment.getExternalStorageDirectory().getPath()
+                        + "/" + id);
+                try {
+                    file.createNewFile();
+                    FileOutputStream fos = new FileOutputStream(file);
+                    //bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+                    fos.close();
+                    context.setProgressBarInvisible();
+                    Log.d("DOWNLOADING", "image downloaded");
+                    context.showToast("Photo downloaded");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    context.setProgressBarInvisible();
+                    context.showToast("Download error");
                 }
-                view.loadUrl(url);
-                return false;
+            }
+
+            @Override
+            public void onBitmapFailed(Drawable errorDrawable) {
+                Log.d("DOWNLOADING", "downloading failed");
+            }
+
+            @Override
+            public void onPrepareLoad(Drawable placeHolderDrawable) {
+
             }
         });
+//        webView.loadUrl(url);
+//        webView.setWebViewClient(new WebViewClient(){
+//            @Override
+//            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+//                Log.d("DOWNLOADING", "url");
+//                if (url.contains("images.unsplash.com")){
+//                    Picasso.with(context).load(url).into(new Target() {
+//                        @Override
+//                        public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+//                            Log.d("DOWNLOADING", "downloading file");
+//                            File file = new File(Environment.getExternalStorageDirectory().getPath()
+//                                    + "/" + id);
+//                            try {
+//                                file.createNewFile();
+//                                FileOutputStream fos = new FileOutputStream(file);
+//                                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+//                                fos.close();
+//                                context.setProgressBarInvisible();
+//                                context.showToast("Photo downloaded");
+//                            } catch (IOException e) {
+//                                e.printStackTrace();
+//                            }
+//                        }
+//
+//                        @Override
+//                        public void onBitmapFailed(Drawable errorDrawable) {
+//                            Log.d("DOWNLOADING", "downloading failed");
+//                        }
+//
+//                        @Override
+//                        public void onPrepareLoad(Drawable placeHolderDrawable) {
+//
+//                        }
+//                    });
+//
+//                }
+//                view.loadUrl(url);
+//                return false;
+//            }
+//        });
     }
 }
