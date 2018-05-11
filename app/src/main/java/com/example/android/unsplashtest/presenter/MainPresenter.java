@@ -2,6 +2,8 @@ package com.example.android.unsplashtest.presenter;
 
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.Bundle;
+import android.os.Parcelable;
 import android.util.Log;
 import android.view.View;
 import android.webkit.WebView;
@@ -26,6 +28,7 @@ import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -47,6 +50,8 @@ public class MainPresenter {
     private String token;
     private String query;
     private boolean searching;
+    private static final String PHOTO_LIST = "photo list";
+    private static final String TOKEN = "token";
 
     public MainPresenter(MainActivity mainActivity) {
         this.context = mainActivity;
@@ -223,6 +228,10 @@ public class MainPresenter {
         return photos;
     }
 
+    public void setPhotoList(Photo[] photoArray){
+        photos.addAll(Arrays.asList(photoArray));
+    }
+
     private void getPhotoFromJson(JsonElement jsonElement) {
         JsonObject jsonObject = jsonElement.getAsJsonObject();
         String id = jsonObject.get("id").getAsString();
@@ -235,6 +244,10 @@ public class MainPresenter {
     public void clearPhotoList() {
         photos.clear();
         calbacks.clear();
+    }
+
+    public void setToken(String token) {
+        this.token = token;
     }
 
     public boolean isLoaded() {
@@ -251,5 +264,28 @@ public class MainPresenter {
 
     public void setQuery(String query) {
         this.query = query;
+    }
+
+    public void onSaveState(Bundle outState){
+        Parcelable[] parcelables = new Parcelable[getPhotoList().size()];
+        for (int i = 0; i < getPhotoList().size(); i++){
+            parcelables[i] = getPhotoList().get(i);
+        }
+        outState.putParcelableArray(PHOTO_LIST ,parcelables);
+        outState.putString(TOKEN, token);
+    }
+
+    public void onRestoreState(Bundle savedInstanceState){
+        Parcelable[] parcelables = savedInstanceState.getParcelableArray(PHOTO_LIST);
+        Photo[] photos = new Photo[parcelables.length];
+        for (int i = 0; i <parcelables.length; i++){
+            photos[i] = (Photo) parcelables[i];
+        }
+        setPhotoList(photos);
+        setToken(savedInstanceState.getString(TOKEN));
+    }
+
+    public Set<String> getCallbacks() {
+        return calbacks;
     }
 }
