@@ -8,6 +8,9 @@ import dagger.Provides;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+/**
+ * Dagger module for Retrofit service
+ */
 @Module
 public class NetworkModule {
     private String baseUrl;

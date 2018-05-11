@@ -6,6 +6,9 @@ import com.example.android.unsplashtest.presenter.MainPresenter;
 import dagger.Module;
 import dagger.Provides;
 
+/**
+ * Dagger module for MainPresenter
+ */
 @Module
 public class MainActivityModule {
     MainActivity context;

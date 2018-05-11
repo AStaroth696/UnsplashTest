@@ -11,14 +11,15 @@ import android.widget.ImageView;
 import com.example.android.unsplashtest.R;
 import com.example.android.unsplashtest.presenter.MainPresenter;
 
+/**
+ * Adapter for photo Grid in main activity
+ */
 public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.ViewHolder>{
     private MainPresenter presenter;
-    //private List<Photo> photos;
 
     public PhotoAdapter(MainPresenter presenter) {
         Log.d("ADAPTER", "created");
         this.presenter = presenter;
-        //photos = presenter.getPhotoList();
     }
 
     @NonNull

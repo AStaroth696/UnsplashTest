@@ -10,6 +10,8 @@
     <string name="auth_grant_type">authorization_code</string>
     <string name="search">Search</string>
     <string name="download">Download</string>
+    <string name="set_wallpaper">Set as wallpaper</string>
+    <string name="set_done">Photo set as wallpaper</string>
     <string name="connectivity_error">No internet connection</string>
     <string name="downloading">Downloading…</string>
     <string name="photo_downloaded">Photo downloaded</string>

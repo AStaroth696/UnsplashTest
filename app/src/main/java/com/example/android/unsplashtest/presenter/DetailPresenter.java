@@ -1,5 +1,6 @@
 package com.example.android.unsplashtest.presenter;
 
+import android.app.WallpaperManager;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.Environment;
@@ -17,7 +18,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-
+/**
+ * Presenter class for detail activity
+ */
 public class DetailPresenter{
     private DetailActivity context;
 
@@ -25,8 +28,9 @@ public class DetailPresenter{
         this.context = detailActivity;
     }
 
+    //Load photo into imageView by url
     public void loadPhotoIntoContainer(PhotoView photo, String url){
-        if (NetworkStateInfo.isNetworAvailable(context)) {
+        if (NetworkStateInfo.isNetworkAvailable(context)) {
             context.setProgressBarVisible();
             Picasso.with(context).load(url).into(photo, new Callback() {
                 @Override
@@ -42,22 +46,24 @@ public class DetailPresenter{
         }
     }
 
+    //Download photo into root folder
     public void downloadPhoto(String url, final String id) {
-        if (NetworkStateInfo.isNetworAvailable(context)) {
+        if (NetworkStateInfo.isNetworkAvailable(context)) {
             context.setProgressBarVisible();
             context.showToast(context.getResources().getString(R.string.downloading));
             Picasso.with(context).load(url).into(new Target() {
                 @Override
                 public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-                    File file = new File(Environment.getExternalStorageDirectory().getPath()
+                    File file = new File(Environment
+                            .getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath()
                             + "/" + id + ".jpeg");
                     try {
-                        file.createNewFile();
-                        FileOutputStream fos = new FileOutputStream(file);
-                        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
-                        fos.close();
-                        context.setProgressBarInvisible();
-                        context.showToast(context.getResources().getString(R.string.photo_downloaded));
+                            file.createNewFile();
+                            FileOutputStream fos = new FileOutputStream(file);
+                            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+                            fos.close();
+                            context.setProgressBarInvisible();
+                            context.showToast(context.getResources().getString(R.string.photo_downloaded));
                     } catch (IOException e) {
                         e.printStackTrace();
                         context.setProgressBarInvisible();
@@ -74,5 +80,31 @@ public class DetailPresenter{
                 }
             });
         }
+    }
+
+    //Set photo as wallpaper
+    public void setWallpaper(String url){
+        Picasso.with(context).load(url).into(new Target() {
+            @Override
+            public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+                WallpaperManager wpmanager = WallpaperManager.getInstance(context);
+                try {
+                    wpmanager.setBitmap(bitmap);
+                    context.showToast(context.getResources().getString(R.string.set_done));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onBitmapFailed(Drawable errorDrawable) {
+
+            }
+
+            @Override
+            public void onPrepareLoad(Drawable placeHolderDrawable) {
+
+            }
+        });
     }
 }

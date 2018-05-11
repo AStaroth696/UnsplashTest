@@ -6,6 +6,9 @@ import com.example.android.unsplashtest.presenter.DetailPresenter;
 import dagger.Module;
 import dagger.Provides;
 
+/**
+ * Dagger module for DetailPresenter
+ */
 @Module
 public class DetailActivityModule {
     DetailActivity context;

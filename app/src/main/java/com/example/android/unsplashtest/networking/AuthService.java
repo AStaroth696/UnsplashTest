@@ -8,9 +8,8 @@ import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.POST;
 
 /**
- * Created by 1 on 09.05.2018.
+ * Retrofit service for authentication
  */
-
 public interface AuthService {
     @FormUrlEncoded
     @POST("oauth/token")

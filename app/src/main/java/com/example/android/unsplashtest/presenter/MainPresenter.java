@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.util.Log;
 import android.view.View;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -39,6 +38,9 @@ import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
+/**
+ * Presenter class for main activity
+ */
 public class MainPresenter {
     @Inject
     Retrofit retrofit;
@@ -55,12 +57,14 @@ public class MainPresenter {
 
     public MainPresenter(MainActivity mainActivity) {
         this.context = mainActivity;
+        //Create Retrofit service for authentication
         NetworkComponent networkComponent = DaggerNetworkComponent.builder()
                 .networkModule(new NetworkModule("https://unsplash.com/"))
                 .build();
         networkComponent.inject(this);
         authService = retrofit.create(AuthService.class);
 
+        //Create Retrofit service for loading and searching photos
         networkComponent = DaggerNetworkComponent.builder()
                 .networkModule(new NetworkModule("https://api.unsplash.com/"))
                 .build();
@@ -71,8 +75,9 @@ public class MainPresenter {
         calbacks = new HashSet<>();
     }
 
+    //Start process to receive code for authentication
     public void processWebView(final WebView webView) {
-        if (NetworkStateInfo.isNetworAvailable(context)) {
+        if (NetworkStateInfo.isNetworkAvailable(context)) {
             webView.setVisibility(View.VISIBLE);
             String url = context.getResources().getString(R.string.authentication_url) + "?"
                     + "client_id=" + context.getResources().getString(R.string.client_id) + "&"
@@ -86,8 +91,8 @@ public class MainPresenter {
                     if (url.contains("oauth/authorize") && !url.contains("&")) {
                         int index = url.lastIndexOf("/") + 1;
                         String code = url.substring(index);
-                        Log.d("AUTHORIZE", "code: " + code);
                         webView.setVisibility(View.INVISIBLE);
+                        //Start authorization after code received
                         authorize(code);
                     }
                     webView.loadUrl(url);
@@ -97,8 +102,9 @@ public class MainPresenter {
         }
     }
 
+    //Authorization process to receive token
     private void authorize(final String code) {
-        if (NetworkStateInfo.isNetworAvailable(context)) {
+        if (NetworkStateInfo.isNetworkAvailable(context)) {
             new AsyncTask<Void, Void, Void>() {
                 @Override
                 protected Void doInBackground(Void... voids) {
@@ -113,7 +119,6 @@ public class MainPresenter {
                     try {
                         Response<JsonElement> response = call.execute();
                         token = response.body().getAsJsonObject().get("access_token").getAsString();
-                        Log.d("AUTHORIZE", "token: " + token);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -129,6 +134,7 @@ public class MainPresenter {
         }
     }
 
+    //Load usual photos or load photos by query depending on flag
     public void receivePhotos() {
         if (searching) {
             searchPhotos();
@@ -138,15 +144,15 @@ public class MainPresenter {
 
     }
 
+    //Load usual photos
     public void loadPhotos() {
-        if (NetworkStateInfo.isNetworAvailable(context)) {
+        if (NetworkStateInfo.isNetworkAvailable(context)) {
             context.setProgressBarVisible();
             new AsyncTask<Void, Void, Void>() {
                 @Override
                 protected Void doInBackground(Void... voids) {
                     Call<JsonElement> call = service.getPhotosList("Bearer " + token,
                             (photos.size() / 20) + 1, 20);
-                    Log.d("PHOTOS", "get photos request: " + call.request().toString() + " : " + call.request().headers().toString());
                     try {
                         Response<JsonElement> response = call.execute();
                         JsonArray jsonArray = response.body().getAsJsonArray();
@@ -170,15 +176,15 @@ public class MainPresenter {
         }
     }
 
+    //Load photos by search query
     public void searchPhotos() {
-        if (NetworkStateInfo.isNetworAvailable(context)) {
+        if (NetworkStateInfo.isNetworkAvailable(context)) {
             context.setProgressBarVisible();
             new AsyncTask<Void, Void, Void>() {
                 @Override
                 protected Void doInBackground(Void... voids) {
                     Call<JsonElement> call = service.searchPhotos("Bearer " + token,
                             (photos.size() / 20) + 1, 20, query);
-                    Log.d("PHOTOS", "search photos request: " + call.request().toString() + " : " + call.request().headers().toString());
                     try {
                         Response<JsonElement> response = call.execute();
                         JsonArray jsonArray = response.body().getAsJsonObject().get("results").getAsJsonArray();
@@ -201,8 +207,9 @@ public class MainPresenter {
         }
     }
 
+    //Bind card in Grid layout
     public void bindView(final ImageView photo, final int position) {
-        if (NetworkStateInfo.isNetworAvailable(context)) {
+        if (NetworkStateInfo.isNetworkAvailable(context)) {
             Picasso.with(context).load(photos.get(position).getThumbNailUrl()).into(photo, new Callback() {
                 @Override
                 public void onSuccess() {
@@ -217,6 +224,7 @@ public class MainPresenter {
         }
     }
 
+    //Grid item clicked processing
     public void itemClicked(Photo photo) {
         Intent intent = new Intent(context, DetailActivity.class);
         intent.putExtra(DetailActivity.PHOTO_ID, photo.getId());
@@ -232,6 +240,7 @@ public class MainPresenter {
         photos.addAll(Arrays.asList(photoArray));
     }
 
+    //Convert json element to Photo object
     private void getPhotoFromJson(JsonElement jsonElement) {
         JsonObject jsonObject = jsonElement.getAsJsonObject();
         String id = jsonObject.get("id").getAsString();
@@ -241,6 +250,7 @@ public class MainPresenter {
         photos.add(new Photo(thumbnailUrl, regularUrl, id));
     }
 
+    //Remove data from photos and callbacks list when search starts or ends
     public void clearPhotoList() {
         photos.clear();
         calbacks.clear();
@@ -250,10 +260,12 @@ public class MainPresenter {
         this.token = token;
     }
 
+    //Flag for permission to load a new portion of photos
     public boolean isLoaded() {
         return !(photos.size() > calbacks.size());
     }
 
+    //Flag for changing receiving photos mode
     public void setSearching(boolean searching) {
         this.searching = searching;
     }
@@ -266,7 +278,9 @@ public class MainPresenter {
         this.query = query;
     }
 
+    //Save instance state processing
     public void onSaveState(Bundle outState){
+        //Convert photos list into parcelable array
         Parcelable[] parcelables = new Parcelable[getPhotoList().size()];
         for (int i = 0; i < getPhotoList().size(); i++){
             parcelables[i] = getPhotoList().get(i);
@@ -275,7 +289,9 @@ public class MainPresenter {
         outState.putString(TOKEN, token);
     }
 
+    //Restore instance state processing
     public void onRestoreState(Bundle savedInstanceState){
+        //Get parcelable array from bundle and convert to Photo object array
         Parcelable[] parcelables = savedInstanceState.getParcelableArray(PHOTO_LIST);
         Photo[] photos = new Photo[parcelables.length];
         for (int i = 0; i <parcelables.length; i++){
@@ -283,9 +299,5 @@ public class MainPresenter {
         }
         setPhotoList(photos);
         setToken(savedInstanceState.getString(TOKEN));
-    }
-
-    public Set<String> getCallbacks() {
-        return calbacks;
     }
 }

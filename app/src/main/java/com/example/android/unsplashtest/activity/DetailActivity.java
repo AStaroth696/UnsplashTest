@@ -4,10 +4,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
-import android.webkit.WebView;
-import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -19,7 +16,9 @@ import com.github.chrisbanes.photoview.PhotoView;
 
 import javax.inject.Inject;
 
-
+/**
+ * Activity that represents selected photo
+ */
 public class DetailActivity extends AppCompatActivity {
     public static final String PHOTO_ID = "photo id";
     public static final String PHOTO_URL = "photo url";
@@ -55,6 +54,9 @@ public class DetailActivity extends AppCompatActivity {
         switch (item.getItemId()){
             case R.id.action_download:
                 presenter.downloadPhoto(photoUrl, photoId);
+                break;
+            case R.id.action_set_wallpaper:
+                presenter.setWallpaper(photoUrl);
                 break;
         }
         return super.onOptionsItemSelected(item);

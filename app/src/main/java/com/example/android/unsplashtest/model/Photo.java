@@ -3,6 +3,9 @@ package com.example.android.unsplashtest.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+/**
+ * Pacelable photo model
+ */
 public class Photo implements Parcelable{
     private String thumbNailUrl;
     private String regularUrl;
